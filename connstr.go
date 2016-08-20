@@ -3,6 +3,7 @@ package tmpq
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -42,6 +43,11 @@ const (
 	connectionStringIntParamFormat    = "%s=%d"
 )
 
+var (
+	whiteSpaceRegex  = regexp.MustCompile(`\s+`)
+	singleQuoteRegex = regexp.MustCompile(`'`)
+)
+
 func (c *ConnectionString) String() string {
 	return strings.Join(c.collectParams(), " ")
 }
@@ -77,12 +83,19 @@ func (c *ConnectionString) param(val reflect.Value, tag string) string {
 }
 
 func stringParam(str string, tag string) string {
-
 	if str == "" {
 		return ""
 	}
+	v := str
+	if whiteSpaceRegex.MatchString(str) {
+		if singleQuoteRegex.MatchString(str) {
+			v = singleQuoteRegex.ReplaceAllString(str, `\'`)
+		}
+		v = `'` + v + `'`
+	}
+
 	return fmt.Sprintf(connectionStringStringParamFormat,
-		tag, str)
+		tag, v)
 
 }
 
