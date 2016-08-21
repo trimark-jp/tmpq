@@ -32,7 +32,7 @@ func (w *Wrapper) Initialize(cs *ConnectionString) error {
 }
 
 // AutoTx executes the function passing transaction object.
-func (w *Wrapper) AutoTx(f func(*sql.Tx) error) (err error) {
+func (w *Wrapper) AutoTx(f TxFunc) (err error) {
 	var tx *sql.Tx
 
 	tx, err = w.DB.Begin()
@@ -52,4 +52,18 @@ func (w *Wrapper) AutoTx(f func(*sql.Tx) error) (err error) {
 
 	err = f(tx)
 	return err
+}
+
+// ExecInsert execute insertion.
+func (w *Wrapper) ExecInsert(f InsertFunc) (int, error) {
+	var err error
+	var resultID int
+
+	err = w.AutoTx(func(tx *sql.Tx) error {
+		var inner error
+		resultID, inner = f(tx)
+		return inner
+	})
+
+	return resultID, err
 }

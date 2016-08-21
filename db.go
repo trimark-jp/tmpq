@@ -1,10 +1,16 @@
 package tmpq
 
-import
-
-// DB Driver for PostgreSQL.
-(
+import (
 	"database/sql"
+)
+
+type (
+	// TxFunc is function uses transaction.
+	TxFunc func(*sql.Tx) error
+
+	// InsertFunc implements insertion.
+	// This returns a record ID and error.
+	InsertFunc func(*sql.Tx) (int, error)
 )
 
 var (
@@ -23,6 +29,11 @@ func Initialize(cs *ConnectionString) error {
 }
 
 // AutoTx executes the function passing transaction object.
-func AutoTx(f func(*sql.Tx) error) error {
+func AutoTx(f TxFunc) error {
 	return defaultWrapper.AutoTx(f)
+}
+
+// ExecInsert execute insertion.
+func ExecInsert(f InsertFunc) (int, error) {
+	return defaultWrapper.ExecInsert(f)
 }
